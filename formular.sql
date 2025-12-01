@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Počítač: localhost:3306
--- Vytvořeno: Čtv 27. lis 2025, 11:50
+-- Vytvořeno: Pon 01. pro 2025, 08:27
 -- Verze serveru: 5.7.24
 -- Verze PHP: 8.3.1
 
@@ -28,12 +28,21 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
-  `nickname` varchar(50) COLLATE utf8_czech_ci NOT NULL,
-  `password_hash` varchar(255) COLLATE utf8_czech_ci NOT NULL,
-  `avatar` varchar(255) COLLATE utf8_czech_ci DEFAULT 'default.png',
+  `id` int(10) UNSIGNED NOT NULL,
+  `nickname` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `avatar` varchar(2048) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Vypisuji data pro tabulku `users`
+--
+
+INSERT INTO `users` (`id`, `nickname`, `password`, `email`, `avatar`, `created_at`) VALUES
+(1, 'root', '$2y$10$HhMpxepA2AQcQXhw7BYWHembj1VbiGVhnhiWcUm15VFiw2PHI2g/e', '123@gmail.com', 'https://papilonia.cz/sites/default/files/my-image/motyl-background.png', '2025-12-01 07:29:30'),
+(3, 'root2', '$2y$10$5jSBtNgNXtBHhZT2z2eoZOamMpaiTbNRlGhCwF6jt.NNRUMbgvCbW', 'root@gmail.com', NULL, '2025-12-01 07:38:34');
 
 --
 -- Indexy pro exportované tabulky
@@ -44,7 +53,8 @@ CREATE TABLE `users` (
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `nickname` (`nickname`);
+  ADD UNIQUE KEY `nickname` (`nickname`),
+  ADD UNIQUE KEY `email` (`email`);
 
 --
 -- AUTO_INCREMENT pro tabulky
@@ -54,7 +64,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT pro tabulku `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

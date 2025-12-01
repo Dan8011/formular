@@ -5,22 +5,25 @@ session_start();
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $nickname = trim($_POST["nickname"]);
+    $login = trim($_POST["nickname"]); // může být nickname nebo email
     $password = $_POST["password"];
 
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE nickname = ?");
-    $stmt->execute([$nickname]);
+    // Vyhledání uživatele podle nickname NEBO emailu
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE nickname = ? OR email = ?");
+    $stmt->execute([$login, $login]);
     $user = $stmt->fetch();
 
-    if ($user && password_verify($password, $user["password_hash"])) {
+    // Zkontrolujeme heslo
+    if ($user && password_verify($password, $user["password"])) {
         $_SESSION["user_id"] = $user["id"];
         header("Location: dashboard.php");
         exit;
     } else {
-        $error = "Nesprávné uživatelské jméno nebo heslo.";
+        $error = "Nesprávné přihlašovací údaje.";
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="cs">
@@ -47,9 +50,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <div class="form-main">
                     <div class="form-main-inputs">
                         <div class="form-main-inputs-label">
-                            <label for="nickname">Uživatelské jméno</label>
+                            <label for="nickname">Uživatelské jméno nebo e-mail</label>
                         </div>
-                        <input type="text" id="nickname" name="nickname" placeholder="Uživatelské jméno" required>
+                        <input type="text" id="nickname" name="nickname" placeholder="Uživatelské jméno nebo e-mail" required>
                     </div>
 
                     <div class="form-main-inputs">

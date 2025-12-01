@@ -27,7 +27,7 @@ $user = $stmt->fetch();
         <div class="form">
             <div class="form-header">
                 <img src="/img/apexlogo.png" alt="LogoApex">
-                <h2>Welcome, <?= htmlspecialchars($user['nickname']) ?>!</h2>
+                <h2>Vítej, <?= htmlspecialchars($user['nickname']) ?>!</h2>
             </div>
 
             <div class="form-main dashboard-buttons">

@@ -1,43 +1,43 @@
 <?php
-require "db.php";
 session_start();
 
+require __DIR__ . "/db.php";
+
 $error = "";
+$success = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $nickname = trim($_POST["nickname"]);
+    $email = trim($_POST["email"]);
     $password = $_POST["password"];
     $confirm_password = $_POST["confirm_password"];
-    $terms = isset($_POST['terms']);
+    $terms = isset($_POST["terms"]);
 
-    // Validace nickname (alfanumerický a délka)
-    if (!preg_match('/^[a-zA-Z0-9]{3,20}$/', $nickname)) {
-        $error = "Uživatelské jméno musí být 3-20 znaků a obsahovat jen písmena a čísla.";
-    }
-    // Validace délky hesla
-    elseif (strlen($password) < 6) {
+    // VALIDACE
+    if (!preg_match('/^[a-zA-Z0-9]+$/', $nickname)) {
+        $error = "Uživatelské jméno smí obsahovat jen písmena a čísla.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Neplatný formát e-mailu.";
+    } elseif (strlen($password) < 6) {
         $error = "Heslo musí mít alespoň 6 znaků.";
-    }
-    // Kontrola shody hesla a potvrzení
-    elseif ($password !== $confirm_password) {
+    } elseif ($password !== $confirm_password) {
         $error = "Hesla se neshodují.";
-    }
-    // Kontrola zaškrtnutí terms
-    elseif (!$terms) {
-        $error = "Musíte souhlasit s podmínkami služby.";
+    } elseif (!$terms) {
+        $error = "Musíte souhlasit s podmínkami.";
     } else {
+
+        // HASHOVÁNÍ
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare("INSERT INTO users (nickname, password_hash) VALUES (?, ?)");
+
+        // PŘÍKAZ DO DB — UPRAVENO
+        $stmt = $pdo->prepare("INSERT INTO users (nickname, email, password) VALUES (?, ?, ?)");
 
         try {
-            $stmt->execute([$nickname, $passwordHash]);
-            // Úspěšná registrace → přesměrování na login
-            header("Location: login.php");
-            exit;
+            $stmt->execute([$nickname, $email, $passwordHash]);
+            $success = "Registrace proběhla úspěšně. Můžete se přihlásit.";
         } catch (PDOException $e) {
-            // Duplicate entry
             if ($e->getCode() == 23000) {
-                $error = "Toto uživatelské jméno již existuje.";
+                $error = "Uživatelské jméno nebo email již existuje.";
             } else {
                 $error = "Chyba databáze: " . $e->getMessage();
             }
@@ -45,6 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="cs">
@@ -78,6 +79,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <label for="nickname">Uživatelské jméno</label>
                         </div>
                         <input type="text" id="nickname" name="nickname" placeholder="Uživatelské jméno (pouze alfanumerické)" required>
+                    </div>
+
+                    <div class="form-main-inputs">
+                        <div class="form-main-inputs-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm0 0c0 1.657 1.007 3 2.25 3S21 13.657 21 12a9 9 0 1 0-2.636 6.364M16.5 12V8.25" />
+                            </svg>
+
+                            <label for="email">E-mail</label>
+                        </div>
+                        <input type="email" id="email" name="email" placeholder="Zadejte e-mail" required>
                     </div>
 
                     <div class="form-main-inputs">
