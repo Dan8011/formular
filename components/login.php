@@ -5,25 +5,42 @@ session_start();
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $login = trim($_POST["nickname"]); // může být nickname nebo email
+    $login = trim($_POST["nickname"]);
     $password = $_POST["password"];
 
-    // Vyhledání uživatele podle nickname NEBO emailu
     $stmt = $pdo->prepare("SELECT * FROM users WHERE nickname = ? OR email = ?");
     $stmt->execute([$login, $login]);
     $user = $stmt->fetch();
 
-    // Zkontrolujeme heslo
     if ($user && password_verify($password, $user["password"])) {
-        $_SESSION["user_id"] = $user["id"];
-        header("Location: dashboard.php");
-        exit;
+
+        if ($user["2fa_enabled"]) {
+            $code = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+            $expires = date("Y-m-d H:i:s", strtotime("+5 minutes"));
+
+            $stmt = $pdo->prepare("UPDATE users SET 2fa_code = ?, 2fa_expires = ? WHERE id = ?");
+            $stmt->execute([$code, $expires, $user["id"]]);
+
+            $to = $user["email"];
+            $subject = "Váš 2FA kód";
+            $message = "Váš kód pro přihlášení je: $code\nPlatí 5 minut.";
+            $headers = "From: no-reply@tvoje-domena.cz\r\n";
+            mail($to, $subject, $message, $headers);
+
+            $_SESSION["2fa_user_id"] = $user["id"];
+            header("Location: 2fa.php");
+            exit;
+        } else {
+            $_SESSION["user_id"] = $user["id"];
+            header("Location: dashboard.php");
+            exit;
+        }
+
     } else {
         $error = "Nesprávné přihlašovací údaje.";
     }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="cs">
